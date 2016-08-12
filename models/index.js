@@ -20,7 +20,30 @@ var Page = db.define('page', {
     date: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW
+    },
+    tag:{
+        type:Sequelize.ARRAY(Sequelize.TEXT)
     }
+    
+},{
+    hooks:{
+        beforeValidate:function generateUrlTitle (page) {
+                          if (page.title) {
+                            // Removes all non-alphanumeric characters from title
+                            // And make whitespace underscore
+                           page.urlTitle = page.title.replace(/\s+/g, '_').replace(/\W/g, '');
+                          } else {
+                            // Generates random 5 letter string
+                              page.urlTitle =  Math.random().toString(36).substring(2, 7);
+                          }
+                        }
+
+        },
+        getterMethods:{
+            route:function(){
+                return '/wiki/'+this.urlTitle;
+            }
+        }
 });
 
 var User = db.define('user', {
@@ -34,6 +57,8 @@ var User = db.define('user', {
         allowNull: false
     }
 });
+
+Page.belongsTo(User, { as: 'author' });
 
 module.exports = {
   Page: Page,
